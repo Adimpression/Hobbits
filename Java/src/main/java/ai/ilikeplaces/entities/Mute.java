@@ -1,6 +1,6 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.EntityLifeCycleListener;
+
 import ai.ilikeplaces.entities.etc.HumanEquals;
 import ai.ilikeplaces.entities.etc.HumanEqualsFace;
 import ai.scribble.License;
@@ -21,43 +21,24 @@ import java.io.Serializable;
  * Time: 1:01:22 PM
  */
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "Mute", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class Mute extends HumanEquals implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
+    public Long muteId;
     public static final String muteIdCOL = "muteId";
+
+    public Integer muteType;//Wall, Album
+
+    public String muteContent;
+
+    public String muteMetadata;//Anybody can store relevant metadata here
 
 
     final static public int muteTypeHUMAN = 1;
     final static public int muteTypeMISC = 0;
 
-
     @Id
-    @Column(name = "muteId")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long muteId;
-
-    @Column(name = "muteType")
-    public Integer muteType;//Wall, Album
-
-    @Column(name = "muteContent")
-    public String muteContent;
-
-    @Column(name = "muteMetadata")
-    public String muteMetadata;//Anybody can store relevant metadata here
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getMuteContent() {
-        return muteContent;
-    }
-
-    public void setMuteContent(final String muteContent) {
-        this.muteContent = muteContent;
-    }
-
     public Long getMuteId() {
         return muteId;
     }
@@ -66,12 +47,10 @@ public class Mute extends HumanEquals implements Serializable {
         this.muteId = muteId;
     }
 
-    public String getMuteMetadata() {
-        return muteMetadata;
-    }
+    public Mute setMuteIdR(final Long muteId) {
+        this.muteId = muteId;
+        return this;
 
-    public void setMuteMetadata(final String muteMetadata) {
-        this.muteMetadata = muteMetadata;
     }
 
     public Integer getMuteType() {
@@ -82,7 +61,37 @@ public class Mute extends HumanEquals implements Serializable {
         this.muteType = muteType;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    public Mute setMuteTypeR(final Integer muteType) {
+        this.muteType = muteType;
+        return this;
+    }
+
+    public String getMuteContent() {
+        return muteContent;
+    }
+
+    public void setMuteContent(final String muteContent) {
+        this.muteContent = muteContent;
+    }
+
+    public Mute setMuteContentR(final String muteContent) {
+        this.muteContent = muteContent;
+        return this;
+    }
+
+    public String getMuteMetadata() {
+        return muteMetadata;
+    }
+
+    public void setMuteMetadata(final String muteMetadata) {
+        this.muteMetadata = muteMetadata;
+    }
+
+    public Mute setMuteMetadataR(final String muteMetadata) {
+        this.muteMetadata = muteMetadata;
+        return this;
+
+    }
 
     @Override
     public boolean equals(final Object o) {
@@ -103,33 +112,12 @@ public class Mute extends HumanEquals implements Serializable {
     }
 
     /**
+     *
      * @return getMuteContent() being optimistic that it contains the humanId
      */
     @Override
     @Transient
     public String getHumanId() {
         return getMuteContent();
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    public Mute setMuteContentR(final String muteContent) {
-        this.muteContent = muteContent;
-        return this;
-    }
-
-    public Mute setMuteIdR(final Long muteId) {
-        this.muteId = muteId;
-        return this;
-    }
-
-    public Mute setMuteMetadataR(final String muteMetadata) {
-        this.muteMetadata = muteMetadata;
-        return this;
-    }
-
-    public Mute setMuteTypeR(final Integer muteType) {
-        this.muteType = muteType;
-        return this;
     }
 }

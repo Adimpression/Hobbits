@@ -33,15 +33,13 @@
         <class>ai.ilikeplaces.entities.HumansUnseen</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
-            <property name="kundera.nodes" value="localhost"/>
-            <property name="kundera.port" value="60000"/>
-            <property name="kundera.keyspace" value="KunderaKeyspace"/>
-            <property name="kundera.dialect" value="hbase"/>
-            <property name="kundera.client.lookup.class" value="com.impetus.client.hbase.HBaseClientFactory"/>
-            <property name="kundera.cache.provider.class" value="com.impetus.kundera.cache.ehcache.EhCacheProvider"/>
-            <property name="kundera.cache.config.resource" value="/ehcache-test.xml"/>
-            <!--<property name="kundera.ddl.auto.prepare" value="validate"/>-->
-            <property name="kundera.ddl.auto.prepare" value="create"/>
+            <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(ForeignKeys=true)"/>
+            <property name="openjpa.Log" value="File=..\logs\openjpa.log, DefaultLevel=INFO, Runtime=INFO, SQL=INFO"/>
+            <property name="openjpa.QueryCache" value="net.sf.ehcache.openjpa.datacache.EhCacheQueryCache"/>
+            <property name="openjpa.DataCache" value="net.sf.ehcache.openjpa.datacache.EhCacheDataCache"/>
+            <property name="openjpa.RemoteCommitProvider" value="net.sf.ehcache.openjpa.datacache.NoOpRemoteCommitProvider"/>
+            <property name="openjpa.DataCacheManager" value="net.sf.ehcache.openjpa.datacache.EhCacheDataCacheManager"/>
+            <property name="openjpa.FlushBeforeQueries" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>

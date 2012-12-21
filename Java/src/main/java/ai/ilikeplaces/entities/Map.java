@@ -1,9 +1,12 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.EntityLifeCycleListener;
+
 import ai.scribble.License;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.io.Serializable;
 
 /**
@@ -14,33 +17,17 @@ import java.io.Serializable;
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "Map", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class Map implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
-    @Id
-    @Column(name = "id")
-    @GeneratedValue
     public Integer id;
 
-    @Column(name = "label", length = 255)
     public String label;
 
-    @Column(name = "entry", length = 1000)
     public String entry;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getEntry() {
-        return entry;
-    }
-
-    public void setEntry(final String entry) {
-        this.entry = entry;
-    }
-
+    @Id
+    @GeneratedValue
     public Integer getId() {
         return id;
     }
@@ -49,6 +36,7 @@ public class Map implements Serializable {
         this.id = id;
     }
 
+    @Column(length = 255)
     public String getLabel() {
         return label;
     }
@@ -57,7 +45,14 @@ public class Map implements Serializable {
         this.label = label;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    @Column(length = 1000)
+    public String getEntry() {
+        return entry;
+    }
+
+    public void setEntry(final String entry) {
+        this.entry = entry;
+    }
 
     @Override
     public String toString() {

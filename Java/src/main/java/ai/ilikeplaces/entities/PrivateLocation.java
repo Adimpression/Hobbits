@@ -1,10 +1,13 @@
 package ai.ilikeplaces.entities;
 
+
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.License;
 import ai.scribble.WARNING;
 import ai.scribble._bidirectional;
 import ai.scribble._ok;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,19 +19,18 @@ import java.util.List;
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
 @_ok
-@Table(name = "PrivateLocation", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 @NamedQueries({
         @NamedQuery(name = "FindAllPrivateLocationsByName",
-                query = "SELECT loc FROM PrivateLocation loc"),
+                query = "SELECT loc FROM PrivateLocation loc WHERE loc.privateLocationName = :privateLocationName"),
         @NamedQuery(name = "FindAllPrivateLocationNamesByLikeName",
-                query = "SELECT loc.privateLocationName FROM PrivateLocation loc"),
+                query = "SELECT loc.privateLocationName FROM PrivateLocation loc WHERE UPPER(loc.privateLocationName) LIKE :privateLocationName"),
         @NamedQuery(name = "FindAllPrivateLocationsByBounds",
-                query = "SELECT loc FROM PrivateLocation loc")})
+                query = "SELECT loc FROM PrivateLocation loc WHERE (loc.privateLocationLatitude BETWEEN " + ":" + PrivateLocation.PrivateLocationLatitudeSouth + " AND " + ":" + PrivateLocation.PrivateLocationLatitudeNorth + ") AND (loc.privateLocationLongitude BETWEEN " + ":" + PrivateLocation.PrivateLocationLongitudeWest + " AND " + ":" + PrivateLocation.PrivateLocationLongitudeEast + ")")})
 //                           select *   FROM ilp.privatelocation WHERE (    privatelocationlatitude BETWEEN                                 40                         AND                                   50                      ) AND (    privatelocationlongitude between                                 -75                        and                               -7                          )
 public class PrivateLocation implements Serializable, RefreshData<PrivateLocation>, Refreshable<PrivateLocation> {
-// ------------------------------ FIELDS ------------------------------
+
+    final static Logger logger = LoggerFactory.getLogger(PrivateLocation.class.getName());
 
     final static public String FindAllPrivateLocationsByName = "FindAllPrivateLocationsByName";
     final static public String FindAllPrivateLocationNamesByLikeName = "FindAllPrivateLocationNamesByLikeName";
@@ -40,6 +42,26 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
     public static final String PrivateLocationLongitudeWest = "privateLocationLongitudeWest";
     public static final String PrivateLocationLongitudeEast = "privateLocationLongitudeEast";
 
+
+    public Long privateLocationId;
+
+    public String privateLocationName;
+    public String privateLocationInfo;
+
+    public Double privateLocationLatitude;
+    public Double privateLocationLongitude;
+
+    /**
+     * Usually other members having rights to that place.
+     * They cannot delete the location though. Only the creator can.
+     */
+    public List<HumansPrivateLocation> privateLocationOwners;
+    final static public String privateLocationOwnersCOL = "privateLocationOwners";
+
+    public List<HumansPrivateLocation> privateLocationViewers;
+    final static public String privateLocationViewersCOL = "privateLocationViewers";
+
+    public List<PrivateEvent> privateEvents;
     private static final String PRIVATE_LOCATION = "PrivateLocation{";
     private static final String PRIVATE_LOCATION_ID = "privateLocationId=";
     private static final String LATITUDE = ", latitude=";
@@ -48,75 +70,11 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
 
     private static final Refresh<PrivateLocation> REFRESH = new Refresh<PrivateLocation>();
 
-
-    @Id
-    @Column(name = "privateLocationId")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long privateLocationId;
-    public static final String privateLocationIdCOL = "privateLocationId";
-
-    @Column(name = "privateLocationName", unique = false, nullable = false, length = 255)
-    public String privateLocationName;
-
-    @Column(name = "privateLocationInfo", nullable = false, length = 1000)
-    public String privateLocationInfo;
-
-    @Column(name = "privateLocationLatitude")
-    public Double privateLocationLatitude;
-
-    @Column(name = "privateLocationLongitude")
-    public Double privateLocationLongitude;
-
-    /**
-     * Usually other members having rights to that place.
-     * They cannot delete the location though. Only the creator can.
-     */
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
-    @WARNING(warning = "Owning as deleting a location should automatically reflect in humans, not vice versa.")
-    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
-    @JoinTable(
-            name = privateLocationOwnersCOL + HumansPrivateLocation.privateLocationsOwnedCOL,
-            joinColumns = @JoinColumn(name = privateLocationIdCOL),
-            inverseJoinColumns = @JoinColumn(name = HumansPrivateLocation.humanIdCOL)
-    )
-    public List<HumansPrivateLocation> privateLocationOwners;
-    final static public String privateLocationOwnersCOL = "privateLocationOwners";
-
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
-    @WARNING(warning = "Owning as deleting a location should automatically reflect in humans, not vice versa.")
-    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
-    @JoinTable(
-            name = privateLocationViewersCOL + HumansPrivateLocation.privateLocationsViewedCOL,
-            joinColumns = @JoinColumn(name = privateLocationIdCOL),
-            inverseJoinColumns = @JoinColumn(name = HumansPrivateLocation.humanIdCOL)
-    )
-    public List<HumansPrivateLocation> privateLocationViewers;
-    final static public String privateLocationViewersCOL = "privateLocationViewers";
-
-    /*All events are associated to a location*/
-    /*No cascade ALL as we have to return an instance to the user, hence list cascading not possible.*/
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToMany(
-            mappedBy = PrivateEvent.privateLocationCOL,
-            cascade = {CascadeType.REFRESH, CascadeType.REMOVE},
-            fetch = FetchType.LAZY)
-    public List<PrivateEvent> privateEvents;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public List<PrivateEvent> getPrivateEvents() {
-        return privateEvents;
-    }
-
-    public void setPrivateEvents(final List<PrivateEvent> privateEvents) {
-        this.privateEvents = privateEvents;
-    }
-
     /**
      * @return privateLocationId
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long getPrivateLocationId() {
         return privateLocationId;
     }
@@ -129,42 +87,9 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
     }
 
     /**
-     * Important, if privateLocationName & privateLocationSuperSet of two objects are equal,
-     * then the two are talking about the same privateLocation. They should be merged.
-     * i.e. Made to have the same id.
-     *
-     * @return privateLocationInfo
-     */
-    public String getPrivateLocationInfo() {
-        return privateLocationInfo;
-    }
-
-    /**
-     * @param privateLocationInfo__
-     */
-    public void setPrivateLocationInfo(final String privateLocationInfo__) {
-        this.privateLocationInfo = privateLocationInfo__;
-    }
-
-    public Double getPrivateLocationLatitude() {
-        return privateLocationLatitude;
-    }
-
-    public void setPrivateLocationLatitude(final Double privateLocationLatitude_) {
-        this.privateLocationLatitude = privateLocationLatitude_;
-    }
-
-    public Double getPrivateLocationLongitude() {
-        return privateLocationLongitude;
-    }
-
-    public void setPrivateLocationLongitude(final Double privateLocationLongitude_) {
-        this.privateLocationLongitude = privateLocationLongitude_;
-    }
-
-    /**
      * @return privateLocationName
      */
+    @Column(unique = false, nullable = false, length = 255)
     public String getPrivateLocationName() {
         return privateLocationName;
     }
@@ -176,6 +101,46 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
         this.privateLocationName = privateLocationName__;
     }
 
+    /**
+     * Important, if privateLocationName & privateLocationSuperSet of two objects are equal,
+     * then the two are talking about the same privateLocation. They should be merged.
+     * i.e. Made to have the same id.
+     *
+     * @return privateLocationInfo
+     */
+    @Column(nullable = false, length = 1000)
+    public String getPrivateLocationInfo() {
+        return privateLocationInfo;
+    }
+
+    /**
+     * @param privateLocationInfo__
+     */
+    public void setPrivateLocationInfo(final String privateLocationInfo__) {
+        this.privateLocationInfo = privateLocationInfo__;
+    }
+
+    @Column
+    public Double getPrivateLocationLatitude() {
+        return privateLocationLatitude;
+    }
+
+    public void setPrivateLocationLatitude(final Double privateLocationLatitude_) {
+        this.privateLocationLatitude = privateLocationLatitude_;
+    }
+
+    @Column
+    public Double getPrivateLocationLongitude() {
+        return privateLocationLongitude;
+    }
+
+    public void setPrivateLocationLongitude(final Double privateLocationLongitude_) {
+        this.privateLocationLongitude = privateLocationLongitude_;
+    }
+
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @WARNING(warning = "Owning as deleting a location should automatically reflect in humans, not vice versa.")
+    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<HumansPrivateLocation> getPrivateLocationOwners() {
         return privateLocationOwners;
     }
@@ -184,6 +149,9 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
         this.privateLocationOwners = privateLocationOwners;
     }
 
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @WARNING(warning = "Owning as deleting a location should automatically reflect in humans, not vice versa.")
+    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<HumansPrivateLocation> getPrivateLocationViewers() {
         return privateLocationViewers;
     }
@@ -192,7 +160,21 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
         this.privateLocationViewers = privateLocationViewers;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @OneToMany(
+            mappedBy = PrivateEvent.privateLocationCOL,
+            /*All events are associated to a location*/
+            /*No cascade ALL as we have to return an instance to the user, hence list cascading not possible.*/
+            cascade = {CascadeType.REFRESH, CascadeType.REMOVE},
+            fetch = FetchType.LAZY)
+    public List<PrivateEvent> getPrivateEvents() {
+        return privateEvents;
+    }
+
+    public void setPrivateEvents(final List<PrivateEvent> privateEvents) {
+        this.privateEvents = privateEvents;
+    }
+
 
     @Override
     public String toString() {
@@ -203,15 +185,9 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
                 CLOSECURL;
     }
 
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface RefreshData ---------------------
-
     /**
      * Calling this method will refresh any lazily fetched lists in this entity making them availabe for use.
      *
-     * @throws ai.ilikeplaces.entities.etc.DBRefreshDataException
      *
      */
     @Override
@@ -221,9 +197,6 @@ public class PrivateLocation implements Serializable, RefreshData<PrivateLocatio
         this.getPrivateLocationViewers().size();
         return this;
     }
-
-// --------------------- Interface Refreshable ---------------------
-
 
     @Override
     public PrivateLocation refresh(final RefreshSpec refreshSpec) throws RefreshException {

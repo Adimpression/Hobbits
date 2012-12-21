@@ -1,5 +1,6 @@
 package ai.ilikeplaces.entities;
 
+
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.License;
 import ai.scribble.WARNING;
@@ -18,55 +19,31 @@ import java.util.List;
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "Album", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class Album implements RefreshData<Album>, Refreshable<Album>, Serializable {
 
-
-    @Id
-    @Column(name = "albumId")
-    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long albumId;
-    public static final String albumIdCOL = "albumId";
 
-    @Column(name = "albumName", length = 255)
     public String albumName;
 
-    @Column(name = "albumDescription", length = 1023)
     public String albumDescription;
 
 
     @RefreshId("albumPhotos")
-
-    @WARNING(warning = "Not owner because when a photo is deleted, the albums will automatically reflect it." +
-            "The other way round is not feasible because a user will own photos, not albums.")
-    @_note(note = "ManyToMany because photos can be moved to a different album when deleting events.")
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @ManyToMany(mappedBy = PrivatePhoto.albumsCOL, cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<PrivatePhoto> albumPhotos;
-    final static public String albumPhotosCOL = "albumPhotos";
 
-    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
-    @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
-    @JoinColumn(name = Album.albumIdCOL)
     public List<HumansAlbum> albumOwners;
     final static public String albumOwnersCOL = "albumOwners";
 
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
-    @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<HumansAlbum> albumVisitors;
-    @JoinColumn(name = Album.albumIdCOL)
     final static public String albumVisitorsCOL = "albumVisitors";
 
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToOne(mappedBy = PrivateEvent.privateEventAlbumCOL, fetch = FetchType.EAGER)
     public PrivateEvent albumPrivateEvent;
 
     public static final Refresh<Album> REFRESH = new Refresh<Album>();
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long getAlbumId() {
         return albumId;
     }
@@ -81,6 +58,7 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
         return this;
     }
 
+    @Column(length = 1023)
     public String getAlbumDescription() {
         return albumDescription;
     }
@@ -95,6 +73,7 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
         return this;
     }
 
+    @Column(length = 255)
     public String getAlbumName() {
         return albumName;
     }
@@ -110,6 +89,8 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
     }
 
 
+    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
+    @OneToOne(mappedBy = PrivateEvent.privateEventAlbumCOL, fetch = FetchType.EAGER)
     public PrivateEvent getAlbumPrivateEvent() {
         return albumPrivateEvent;
     }
@@ -118,6 +99,8 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
         this.albumPrivateEvent = albumPrivateEvent;
     }
 
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<HumansAlbum> getAlbumOwners() {
         return albumOwners;
     }
@@ -126,6 +109,11 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
         this.albumOwners = albumOwners;
     }
 
+    @WARNING(warning = "Not owner because when a photo is deleted, the albums will automatically reflect it." +
+            "The other way round is not feasible because a user will own photos, not albums.")
+    @_note(note = "ManyToMany because photos can be moved to a different album when deleting events.")
+    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
+    @ManyToMany(mappedBy = PrivatePhoto.albumsCol, cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<PrivatePhoto> getAlbumPhotos() {
         return albumPhotos;
     }
@@ -135,6 +123,8 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
     }
 
 
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public List<HumansAlbum> getAlbumVisitors() {
         return albumVisitors;
     }
@@ -146,7 +136,7 @@ public class Album implements RefreshData<Album>, Refreshable<Album>, Serializab
     /**
      * Calling this method will refresh any lazily fetched lists in this entity making them availabe for use.
      *
-     * @throws ai.ilikeplaces.entities.etc.DBRefreshDataException
+     *
      */
     @Override
     public Album refresh() throws DBRefreshDataException {

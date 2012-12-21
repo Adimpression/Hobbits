@@ -1,6 +1,6 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.EntityLifeCycleListener;
+
 import ai.ilikeplaces.entities.etc.HumanPkJoinFace;
 import ai.scribble.License;
 import ai.scribble._bidirectional;
@@ -17,37 +17,15 @@ import java.io.Serializable;
  * @author Ravindranath Akila
  */
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "HumansWall", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class HumansWall implements HumanPkJoinFace, Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @Column(name = "humanId")
     public String humanId;
-
-
-    @OneToOne(mappedBy = Human.humansWallCOL, cascade = CascadeType.REFRESH)
-    //@PrimaryKeyJoinColumn
     public Human human;
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToOne(mappedBy = Wall.wallIdCOL, cascade = CascadeType.ALL)
     public Wall wall;//Convention would be naming this humansWallWall :-(
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public Human getHuman() {
-        return human;
-    }
-
-    public void setHuman(final Human human) {
-        this.human = human;
-    }
-
+    @Id
     public String getHumanId() {
         return humanId;
     }
@@ -56,20 +34,23 @@ public class HumansWall implements HumanPkJoinFace, Serializable {
         this.humanId = humanId__;
     }
 
+    @OneToOne(cascade = CascadeType.REFRESH)
+    @PrimaryKeyJoinColumn
+    public Human getHuman() {
+        return human;
+    }
+
+    public void setHuman(final Human human) {
+        this.human = human;
+    }
+
+    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
+    @OneToOne(cascade = CascadeType.ALL)
     public Wall getWall() {
         return wall;
     }
 
     public void setWall(final Wall wall) {
         this.wall = wall;
-    }
-
-// ------------------------ CANONICAL METHODS ------------------------
-
-    @Override
-    public String toString() {
-        return "HumansWall{" +
-                "humanId='" + humanId + '\'' +
-                '}';
     }
 }

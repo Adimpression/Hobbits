@@ -2,6 +2,8 @@ package ai.ilikeplaces.entities;
 
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,7 +18,7 @@ import java.util.List;
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "Location", schema = "KunderaKeyspace@ilpMainSchema")
+@_ok
 @Entity
 @NamedQueries({
         @NamedQuery(name = "FindAllLocationsByName",
@@ -24,13 +26,12 @@ import java.util.List;
         @NamedQuery(name = "FindAllLocationsBySuperLocation",
                 query = "SELECT loc FROM " + Location.LocationEntity + " loc WHERE loc." + Location.LocationSuperSet + " = :" + Location.LocationSuperSet),
         @NamedQuery(name = "FindAllLocationNamesByLikeName",
-                query = "SELECT loc.locationName FROM Location loc "),
+                query = "SELECT loc.locationName FROM Location loc WHERE UPPER(loc.locationName) LIKE :locationName"),
         @NamedQuery(name = "FindAllLocationsByLikeName",
-                query = "SELECT loc FROM Location loc")})
-@EntityListeners({EntityLifeCycleListener.class})
-public class Location implements Serializable, Clearance, Comparable<Location>, Refreshable<Location> {
-// ------------------------------ FIELDS ------------------------------
+                query = "SELECT loc FROM Location loc WHERE UPPER(loc.locationName) LIKE :locationName")})
+public class Location implements Serializable, Clearance, Comparable<Location>,Refreshable<Location> {
 
+    final static Logger logger = LoggerFactory.getLogger(Location.class.getName());
     final static public String LocationEntity = "Location";
     final static public String FindAllLocationsByName = "FindAllLocationsByName";
     final static public String FindAllLocationsBySuperLocation = "FindAllLocationsBySuperLocation";
@@ -38,93 +39,32 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
     final static public String FindAllLocationsByLikeName = "FindAllLocationsByLikeName";
     final static public String LocationName = "locationName";
     final static public String LocationSuperSet = "locationSuperSet";
+    final static private long serialVersionUID = 1L;
     final static public String WOEID = "WOEID";
 
+    public Long locationId;
+    public Long clearance = 0L;
+    public String locationName;
+    public String locationInfo;
+    public Location locationSuperSet;
+    public String locationGeo1;
+    public String locationGeo2;
+    public List<PublicPhoto> publicPhotos;
+    public List<PrivateEvent> privateEvents;
+
+    @RefreshId("longMsgs")
+    public List<LongMsg> longMsgs;
     public static final String OF_SPACE = " of ";
     public static final String OF_SCORE = "_of_";
-
-    final static private long serialVersionUID = 1L;
 
     private static final Refresh<Location> REFRESH = new Refresh<Location>();
 
 
-    @Id
-    @Column(name = "locationId")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    public Long locationId;
-    public static final String locationIdCOL = "locationId";
-
-    @Column(name = "clearance")
-    public Long clearance = 0L;
-
-    @Column(name = "locationName", unique = false, nullable = false)
-    public String locationName;
-
-    @Column(name = "locationInfo", unique = false, nullable = false, length = 1000)
-    public String locationInfo;
-
-
-    @OneToOne(mappedBy = "locationId", optional = false,
-            targetEntity = Location.class)
-    public Location locationSuperSet;
-
-    @Column(name = "locationGeo1", length = 63)
-    public String locationGeo1;
-
-    @Column(name = "locationGeo2", length = 63)
-    public String locationGeo2;
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToMany(mappedBy = PublicPhoto.locationCOL, cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinColumn(name = locationIdCOL)
-    public List<PublicPhoto> publicPhotos;
-
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToMany(mappedBy = PrivateEvent.locationCOL,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
-    @JoinColumn(name = locationIdCOL)
-    public List<PrivateEvent> privateEvents;
-
-    @RefreshId("longMsgs")
-    @_unidirectional
-    @OneToMany(cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
-    @JoinColumn(name = locationIdCOL)
-    public List<LongMsg> longMsgs;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    @Override
-    public Long getClearance() {
-        return clearance;
-    }
-
-    @Override
-    public void setClearance(final Long clearance) {
-        this.clearance = clearance;
-    }
-
-    public String getLocationGeo1() {
-        return locationGeo1;
-    }
-
-    public void setLocationGeo1(String locationGeo1) {
-        this.locationGeo1 = locationGeo1;
-    }
-
-    public String getLocationGeo2() {
-        return locationGeo2;
-    }
-
-    public void setLocationGeo2(String locationGeo2) {
-        this.locationGeo2 = locationGeo2;
-    }
-
     /**
      * @return locationId
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     public Long getLocationId() {
         return locationId;
     }
@@ -136,27 +76,20 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
         this.locationId = locationId__;
     }
 
-    /**
-     * Important, if locationName & locationSuperSet of two objects are equal,
-     * then the two are talking about the same location. They should be merged.
-     * i.e. Made to have the same id.
-     *
-     * @return locationInfo
-     */
-    public String getLocationInfo() {
-        return locationInfo;
+    @Override
+    public Long getClearance() {
+        return clearance;
     }
 
-    /**
-     * @param locationInfo__
-     */
-    public void setLocationInfo(final String locationInfo__) {
-        this.locationInfo = locationInfo__;
+    @Override
+    public void setClearance(final Long clearance) {
+        this.clearance = clearance;
     }
 
     /**
      * @return locationName
      */
+    @Column(unique = false, nullable = false)
     public String getLocationName() {
         return locationName;
     }
@@ -173,8 +106,29 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
     }
 
     /**
+     * Important, if locationName & locationSuperSet of two objects are equal,
+     * then the two are talking about the same location. They should be merged.
+     * i.e. Made to have the same id.
+     *
+     * @return locationInfo
+     */
+    @Column(unique = false, nullable = false, length = 1000)
+    public String getLocationInfo() {
+        return locationInfo;
+    }
+
+    /**
+     * @param locationInfo__
+     */
+    public void setLocationInfo(final String locationInfo__) {
+        this.locationInfo = locationInfo__;
+    }
+
+    /**
      * @return locationSuperSet
      */
+    @OneToOne(optional = false,
+            targetEntity = Location.class)
     public Location getLocationSuperSet() {
         return locationSuperSet;
     }
@@ -186,23 +140,8 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
         this.locationSuperSet = locationSuperSet__;
     }
 
-    public List<LongMsg> getLongMsgs() {
-        return longMsgs;
-    }
-
-    public void setLongMsgs(List<LongMsg> longMsgs) {
-        this.longMsgs = longMsgs;
-    }
-
-    public List<PrivateEvent> getPrivateEvents() {
-        return privateEvents;
-    }
-
-    public void setPrivateEvents(List<PrivateEvent> privateEvents) {
-        this.privateEvents = privateEvents;
-    }
-
     @_fix(issue = "Break Location table by this field or use lazy fetching(better). i.e. LocationsPublicPhoto(P.K. = locationId), as that will ease transaction. Use secondary tables PrimaryKeyJoinTable")
+    @OneToMany(mappedBy = PublicPhoto.locationCOL, cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     public List<PublicPhoto> getPublicPhotos() {
         return publicPhotos;
     }
@@ -211,7 +150,57 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
         this.publicPhotos = publicPhotos;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    @Column(length = 63)
+    public String getLocationGeo1() {
+        return locationGeo1;
+    }
+
+    public void setLocationGeo1(String locationGeo1) {
+        this.locationGeo1 = locationGeo1;
+    }
+
+    @Column(length = 63)
+    public String getLocationGeo2() {
+        return locationGeo2;
+    }
+
+    public void setLocationGeo2(String locationGeo2) {
+        this.locationGeo2 = locationGeo2;
+    }
+
+    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
+    @OneToMany(mappedBy = PrivateEvent.locationCOL,
+            cascade = {CascadeType.REFRESH, CascadeType.REMOVE},
+            fetch = FetchType.LAZY)
+    public List<PrivateEvent> getPrivateEvents() {
+        return privateEvents;
+    }
+
+    public void setPrivateEvents(List<PrivateEvent> privateEvents) {
+        this.privateEvents = privateEvents;
+    }
+
+    @_unidirectional
+    @OneToMany(cascade = {CascadeType.ALL},
+            fetch = FetchType.LAZY)
+    public List<LongMsg> getLongMsgs() {
+        return longMsgs;
+    }
+
+    public void setLongMsgs(List<LongMsg> longMsgs) {
+        this.longMsgs = longMsgs;
+    }
+
+    @Transient
+    public Long getWOEID() {
+        return locationId;
+    }
+
+    @Override
+    public Location refresh(final RefreshSpec refreshSpec) throws RefreshException {
+        REFRESH.refresh(this, refreshSpec);
+        return this;
+    }
 
     /**
      * @return toString_
@@ -222,29 +211,8 @@ public class Location implements Serializable, Clearance, Comparable<Location>, 
         return locationName + ((locationSuperSet == null || this.getLocationId().equals(locationSuperSet.getLocationId()) || this.getLocationId() == 1) ? "" : OF_SPACE + locationSuperSet.toString());
     }
 
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Comparable ---------------------
-
-
     @Override
     public int compareTo(Location o) {
         return this.toString().compareTo(o.toString());
-    }
-
-// --------------------- Interface Refreshable ---------------------
-
-    @Override
-    public Location refresh(final RefreshSpec refreshSpec) throws RefreshException {
-        REFRESH.refresh(this, refreshSpec);
-        return this;
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    @Transient
-    public Long getWOEID() {
-        return locationId;
     }
 }

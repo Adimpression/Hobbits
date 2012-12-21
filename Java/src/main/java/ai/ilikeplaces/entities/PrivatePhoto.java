@@ -1,10 +1,15 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.*;
+import ai.ilikeplaces.entities.etc.Refresh;
+import ai.ilikeplaces.entities.etc.RefreshException;
+import ai.ilikeplaces.entities.etc.RefreshSpec;
+import ai.ilikeplaces.entities.etc.Refreshable;
 import ai.scribble.*;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 
@@ -12,68 +17,35 @@ import java.util.List;
  * @author Ravindranath Akila
  */
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "PrivatePhoto", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Refreshable<PrivatePhoto> {
 
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @Column(name = "privatePhotoId")
-    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long privatePhotoId;
-    public static final String privatePhotoIdCOL = "privatePhotoId";
 
-    @_field_preamble(description = "CDN security issue. Put in folders?")
     public String privatePhotoFilePath;
 
-    @_field_preamble(description = "The path should be very random as it will be exposed to the www." +
-            "Also make sure this supports good SEO.")
-    @Column(name = "privatePhotoURLPath")
     public String privatePhotoURLPath;
 
-    @Column(name = "privatePhotoName")
     public String privatePhotoName;
 
-    @Column(name = "privatePhotoDescription")
     public String privatePhotoDescription;
 
-    @_field_preamble(description = "Required to show users")
-    @Temporal(TemporalType.DATE)
-    @Column(name = "privatePhotoUploadDate")
     public Date privatePhotoUploadDate;
 
-    @_field_preamble(description = "Required to show users")
-    @Temporal(TemporalType.DATE)
-    @Column(name = "privatePhotoTakenDate")
     public Date privatePhotoTakenDate;
 
-    @_field_preamble(description = "Who uploaded this image? Wil he request to delete it? " +
-            "Privacy important? " +
-            "Lets preserve the info.")
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = HumansPrivatePhoto.humanIdCOL)
     public HumansPrivatePhoto humansPrivatePhoto;
 
-    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
-    @WARNING(warning = "Owning as deleting a photo should automatically reflect in albums, not vice versa.")
-    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = albumsCOL + Album.albumPhotosCOL,
-            joinColumns = @JoinColumn(name = privatePhotoIdCOL),
-            inverseJoinColumns = @JoinColumn(name = Album.albumIdCOL)
-    )
     public List<Album> albums;
-    final static public String albumsCOL = "albums";
+    final static public String albumsCol = "albums";
 
-    @RefreshId("privatePhotoWall")
-    @_unidirectional
-    @OneToOne(mappedBy = "wallId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     public Wall privatePhotoWall;
 
     private static final Refresh<PrivatePhoto> REFRESH = new Refresh<PrivatePhoto>();
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long getPrivatePhotoId() {
         return privatePhotoId;
     }
@@ -116,6 +88,7 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
         return this;
     }
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     public HumansPrivatePhoto getHumansPrivatePhoto() {
         return humansPrivatePhoto;
     }
@@ -145,6 +118,7 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
     }
 
 
+    @Temporal(javax.persistence.TemporalType.DATE)
     public Date getPrivatePhotoTakenDate() {
         return privatePhotoTakenDate;
     }
@@ -173,6 +147,7 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
         return this;
     }
 
+    @Temporal(javax.persistence.TemporalType.DATE)
     public Date getPrivatePhotoUploadDate() {
         return privatePhotoUploadDate;
     }
@@ -187,6 +162,9 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
         return this;
     }
 
+    @_bidirectional(ownerside = _bidirectional.OWNING.IS)
+    @WARNING(warning = "Owning as deleting a photo should automatically reflect in albums, not vice versa.")
+    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
     public List<Album> getAlbums() {
         return albums;
     }
@@ -195,6 +173,8 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
         this.albums = albums;
     }
 
+    @_unidirectional
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     public Wall getPrivatePhotoWall() {
         return privatePhotoWall;
     }
@@ -216,24 +196,44 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
     }
 
 
+
+    /**
+     * @return toString_
+     */
+    @Override
+    public String toString() {
+        String toString_ = getClass().getName();
+        try {
+            final Field[] fields = {getClass().getDeclaredField("locationId"),
+                    getClass().getDeclaredField("locationName"),
+                    getClass().getDeclaredField("locationSuperSet")};
+
+            for (final Field field : fields) {
+                try {
+                    toString_ += "\n{" + field.getName() + "," + field.get(this) + "}";
+                } catch (IllegalArgumentException ex) {
+                    LoggerFactory.getLogger(Location.class.getName()).error(null, ex);
+                } catch (IllegalAccessException ex) {
+                    LoggerFactory.getLogger(Location.class.getName()).error(null, ex);
+                }
+            }
+        } catch (NoSuchFieldException ex) {
+            LoggerFactory.getLogger(Location.class.getName()).error(null, ex);
+        } catch (SecurityException ex) {
+            LoggerFactory.getLogger(Location.class.getName()).error(null, ex);
+        }
+
+        return toString_;
+    }
+
     /**
      * @param showChangeLog__
      * @return changeLog
      */
-    @Override
-    public String toString() {
-        return "PrivatePhoto{" +
-                "privatePhotoId=" + privatePhotoId +
-                ", privatePhotoFilePath='" + privatePhotoFilePath + '\'' +
-                ", privatePhotoURLPath='" + privatePhotoURLPath + '\'' +
-                ", privatePhotoName='" + privatePhotoName + '\'' +
-                ", privatePhotoDescription='" + privatePhotoDescription + '\'' +
-                ", privatePhotoUploadDate=" + privatePhotoUploadDate +
-                ", privatePhotoTakenDate=" + privatePhotoTakenDate +
-                ", humansPrivatePhoto=" + humansPrivatePhoto +
-                ", albums=" + albums +
-                ", privatePhotoWall=" + privatePhotoWall +
-                '}';
+    public String toString(final boolean showChangeLog__) {
+        String changeLog = toString() + "\n";
+        changeLog += "20090914 Added this class \n";
+        return showChangeLog__ ? changeLog : toString();
     }
 
 

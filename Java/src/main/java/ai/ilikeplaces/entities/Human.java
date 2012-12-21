@@ -2,6 +2,8 @@ package ai.ilikeplaces.entities;
 
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.License;
+import ai.scribble.WARNING;
+import ai.scribble._note;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,25 +13,10 @@ import java.io.Serializable;
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "Human", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class Human extends HumanEquals implements HumanIdFace, Serializable, Clearance, HumansFriend {
-// ------------------------------ FIELDS ------------------------------
 
-    public static final String humansAuthenticationCOL = "humansAuthentication";
-    public static final String humansIdentityCOL = "humansIdentity";
-    public static final String humansPublicPhotoCOL = "humansPublicPhoto";
-    public static final String humansPrivatePhotoCOL = "humansPrivatePhoto";
-    public static final String humansNetCOL = "humansNet";
-    public static final String humansPrivateLocationCOL = "humansPrivateLocation";
-    public static final String humansPrivateEventCOL = "humansPrivateEvent";
-    public static final String humansAlbumCOL = "humansAlbum";
-    public static final String humansWallCOL = "humansWall";
-    @Id
-    @Column(name = "humanId")
     public String humanId;
-    public static final String humanCOL = "humanId";
 
     /**
      * If the user is not active on the site, he is considered dead and the
@@ -37,58 +24,63 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
      * The motivation is to get all humansAlive to be true on ilikeplaces.com:-)
      * Important: This is also the switch for the privacy policy.
      */
-    @Column(name = "humanAlive")
     public Boolean humanAlive;
 
-    @Column(name = "clearance")
     public Long clearance = 0L;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansAuthentication")
+
     public HumansAuthentication humansAuthentication;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansIdentity")
     public HumansIdentity humansIdentity;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansPublicPhoto")
     public HumansPublicPhoto humansPublicPhoto;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "HumansPrivatePhoto")
-    public HumansPrivatePhoto humansPrivatePhoto;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansNet")
+    public HumansPrivatePhoto HumansPrivatePhoto;
     public HumansNet humansNet;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansPrivateLocation")
     public HumansPrivateLocation humansPrivateLocation;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansPrivateEvent")
     public HumansPrivateEvent humansPrivateEvent;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansAlbum")
     public HumansAlbum humansAlbum;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "humanId")
-    @Column(name = "humansWall")
     public HumansWall humansWall;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    @Id
+    public String getHumanId() {
+        return humanId;
+    }
+
+    public void setHumanId(final String humanId__) {
+        this.humanId = humanId__;
+    }
+
+    @Transient
+    public Human getHuman() {
+        return this;
+    }
+
+    @Transient
+    @Override
+    public String getDisplayName() {
+        return getHumansNet().getDisplayName();
+    }
+
+
+
+    /**
+     * Checks friendsHumanId is NOT a friend of this human
+     *
+     * @param friendsHumanId
+     * @return if friendsHumanId is NOT a friend of this human
+     */
+    @Override
+    @Transient
+    public boolean notFriend(final String friendsHumanId) {
+        return !ifFriend(friendsHumanId);
+    }
+
+
+    public Boolean getHumanAlive() {
+        return humanAlive;
+    }
+
+    public void setHumanAlive(final Boolean humanAlive) {
+        this.humanAlive = humanAlive;
+    }
 
     @Override
     public Long getClearance() {
@@ -100,38 +92,18 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
         this.clearance = clearance;
     }
 
-    public Boolean getHumanAlive() {
-        return humanAlive;
-    }
-
-    public void setHumanAlive(final Boolean humanAlive) {
-        this.humanAlive = humanAlive;
-    }
-
-    public String getHumanId() {
-        return humanId;
-    }
-
-    public void setHumanId(final String humanId__) {
-        this.humanId = humanId__;
-    }
-
-    public HumansAlbum getHumansAlbum() {
-        return humansAlbum;
-    }
-
-    public void setHumansAlbum(HumansAlbum humansAlbum) {
-        this.humansAlbum = humansAlbum;
-    }
-
-    public HumansAuthentication getHumansAuthentication() {
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
+    public HumansAuthentication getHumansAuthentications() {
         return humansAuthentication;
     }
 
-    public void setHumansAuthentication(final HumansAuthentication humansAuthentications) {
+    public void setHumansAuthentications(final HumansAuthentication humansAuthentications) {
         this.humansAuthentication = humansAuthentications;
     }
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     public HumansIdentity getHumansIdentity() {
         return humansIdentity;
     }
@@ -140,38 +112,18 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
         this.humansIdentity = humansIdentity;
     }
 
-    public HumansNet getHumansNet() {
-        return humansNet;
-    }
-
-    public void setHumansNet(final HumansNet humansNet) {
-        this.humansNet = humansNet;
-    }
-
-    public HumansPrivateEvent getHumansPrivateEvent() {
-        return humansPrivateEvent;
-    }
-
-    public void setHumansPrivateEvent(final HumansPrivateEvent humansPrivateEvent) {
-        this.humansPrivateEvent = humansPrivateEvent;
-    }
-
-    public HumansPrivateLocation getHumansPrivateLocation() {
-        return humansPrivateLocation;
-    }
-
-    public void setHumansPrivateLocation(final HumansPrivateLocation humansPrivateLocation) {
-        this.humansPrivateLocation = humansPrivateLocation;
-    }
-
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     public HumansPrivatePhoto getHumansPrivatePhoto() {
-        return humansPrivatePhoto;
+        return HumansPrivatePhoto;
     }
 
-    public void setHumansPrivatePhoto(final HumansPrivatePhoto humansPrivatePhoto) {
-        this.humansPrivatePhoto = humansPrivatePhoto;
+    public void setHumansPrivatePhoto(HumansPrivatePhoto HumansPrivatePhoto) {
+        this.HumansPrivatePhoto = HumansPrivatePhoto;
     }
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     public HumansPublicPhoto getHumansPublicPhoto() {
         return humansPublicPhoto;
     }
@@ -180,6 +132,51 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
         this.humansPublicPhoto = humansPublicPhoto;
     }
 
+    @_note(note = "HumansNet is a simple entity with no List based getters and setters.")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @PrimaryKeyJoinColumn
+    public HumansNet getHumansNet() {
+        return humansNet;
+    }
+
+    public void setHumansNet(final HumansNet humansNet) {
+        this.humansNet = humansNet;
+    }
+
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
+    public HumansPrivateLocation getHumansPrivateLocation() {
+        return humansPrivateLocation;
+    }
+
+    public void setHumansPrivateLocation(final HumansPrivateLocation humansPrivateLocation) {
+        this.humansPrivateLocation = humansPrivateLocation;
+    }
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
+    public HumansPrivateEvent getHumansPrivateEvent() {
+        return humansPrivateEvent;
+    }
+
+    public void setHumansPrivateEvent(final HumansPrivateEvent humansPrivateEvent) {
+        this.humansPrivateEvent = humansPrivateEvent;
+    }
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
+    public HumansAlbum getHumansAlbum() {
+        return humansAlbum;
+    }
+
+    public void setHumansAlbum(HumansAlbum humansAlbum) {
+        this.humansAlbum = humansAlbum;
+    }
+
+    @WARNING(warning = "DO NOT fetch eager. Wall will pull all the damn messages eager.")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     public HumansWall getHumansWall() {
         return humansWall;
     }
@@ -187,8 +184,6 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
     public void setHumansWall(final HumansWall humansWall) {
         this.humansWall = humansWall;
     }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public boolean equals(final Object o) {
@@ -218,12 +213,6 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
 
 // --------------------- Interface HumansFriend ---------------------
 
-    @Transient
-    @Override
-    public String getDisplayName() {
-        return getHumansNet().getDisplayName();
-    }
-
     /**
      * Checks friendsHumanId is a friend of this human
      *
@@ -236,22 +225,4 @@ public class Human extends HumanEquals implements HumanIdFace, Serializable, Cle
         return FriendUtil.checkIfFriend(new HumanId(this.humanId), new HumanId(friendsHumanId)).returnValueBadly();
     }
 
-    /**
-     * Checks friendsHumanId is NOT a friend of this human
-     *
-     * @param friendsHumanId
-     * @return if friendsHumanId is NOT a friend of this human
-     */
-    @Override
-    @Transient
-    public boolean notFriend(final String friendsHumanId) {
-        return !ifFriend(friendsHumanId);
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    @Transient
-    public Human getHuman() {
-        return this;
-    }
 }

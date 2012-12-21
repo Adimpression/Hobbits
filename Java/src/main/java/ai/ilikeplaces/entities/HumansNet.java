@@ -1,6 +1,10 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.*;
+
+import ai.ilikeplaces.entities.etc.FriendUtil;
+import ai.ilikeplaces.entities.etc.HumanId;
+import ai.ilikeplaces.entities.etc.HumanPkJoinFace;
+import ai.ilikeplaces.entities.etc.HumansFriend;
 import ai.scribble.License;
 import ai.scribble.WARNING;
 import ai.scribble._note;
@@ -81,17 +85,10 @@ import java.io.Serializable;
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "HumansNet", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class HumansNet implements HumanPkJoinFace, HumansFriend, Serializable {
 
-    @Id
-    @Column(name = "humanId")
     public String humanId;
-
-    @OneToOne(mappedBy = Human.humansNetCOL, cascade = CascadeType.REFRESH)
-    //@PrimaryKeyJoinColumn
     public Human human;
 
     @_note(note = "Display name is used for adding removing users etc. This can also be the nick name." +
@@ -99,17 +96,11 @@ public class HumansNet implements HumanPkJoinFace, HumansFriend, Serializable {
             "This name is important for us as it helps DB performance(instead of loading identity bean." +
             "This is one place where the benefit breaking table with PK is elaborated.(we made this displayName entry much " +
             "later in the development cycle)")
-    @Column(name = "displayName")
     public String displayName;
 
-    @WARNING(warning = "Do not change LAZY loading.",
-            warnings = {"If you are changing, checkIfFriend with Human which fetches this eager.",
-                    "If you are changing, checkIfFriend how to efficiently fetch displayName.",
-                    "You could use pkjoincolumn between HumansNet and the requiring entity."})
-    @OneToOne(mappedBy = "humanId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    //@PrimaryKeyJoinColumn
     public HumansNetPeople humansNetPeople;
 
+    @Id
     public String getHumanId() {
         return humanId;
     }
@@ -118,7 +109,8 @@ public class HumansNet implements HumanPkJoinFace, HumansFriend, Serializable {
         this.humanId = humanId__;
     }
 
-
+    @OneToOne(cascade = CascadeType.REFRESH)
+    @PrimaryKeyJoinColumn
     public Human getHuman() {
         return human;
     }
@@ -136,7 +128,7 @@ public class HumansNet implements HumanPkJoinFace, HumansFriend, Serializable {
     @Transient
     public boolean ifFriend(final String friendsHumanId) {
         return FriendUtil.checkIfFriend(new HumanId(this.humanId), new HumanId(friendsHumanId)).returnValueBadly();
-    }
+        }
 
     @Override
     public boolean notFriend(final String friendsHumanId) {
@@ -147,7 +139,12 @@ public class HumansNet implements HumanPkJoinFace, HumansFriend, Serializable {
         this.displayName = displayName;
     }
 
-
+    @WARNING(warning = "Do not change LAZY loading.",
+            warnings = {"If you are changing, check with Human which fetches this eager.",
+                    "If you are changing, check how to efficiently fetch displayName.",
+                    "You could use pkjoincolumn between HumansNet and the requiring entity."})
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     public HumansNetPeople getHumansNetPeople() {
         return humansNetPeople;
     }

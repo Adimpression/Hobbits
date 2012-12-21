@@ -1,9 +1,8 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.EntityLifeCycleListener;
+
 import ai.ilikeplaces.entities.etc.HumanIdFace;
 import ai.scribble.License;
-import ai.scribble._bidirectional;
 import ai.scribble._fix;
 
 import javax.persistence.*;
@@ -11,45 +10,20 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ *
  * @author Ravindranath Akila
  */
 
 @License(content = "This code is licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3")
-@Table(name = "HumansPublicPhoto", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
 public class HumansPublicPhoto implements HumanIdFace, Serializable {
-// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @Column(name = "humanId")
     public String humanId;
-    public static final String humanIdCOL = "humanId";
-
-
-    @OneToOne(mappedBy = Human.humansPublicPhotoCOL, cascade = CascadeType.ALL)
-    //@PrimaryKeyJoinColumn
     public Human human;
-
-    @_fix(issue = "Fetch type should be lazy, check if callers can do list.size() to refresh list." +
-            "The List of photos can be huge so eager isn't practical")
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @OneToMany(mappedBy = PublicPhoto.humansPublicPhotoCOL, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = humanIdCOL)
     public List<PublicPhoto> publicPhotos;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public Human getHuman() {
-        return human;
-    }
-
-    public void setHuman(final Human human) {
-        this.human = human;
-    }
-
+    @Id
     public String getHumanId() {
         return humanId;
     }
@@ -58,6 +32,19 @@ public class HumansPublicPhoto implements HumanIdFace, Serializable {
         this.humanId = humanId__;
     }
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    public Human getHuman() {
+        return human;
+    }
+
+    public void setHuman(final Human human) {
+        this.human = human;
+    }
+
+    @_fix(issue="Fetch type should be lazy, check if callers can do list.size() to refresh list." +
+            "The List of photos can be huge so eager isn't practical")
+    @OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.MERGE)
     public List<PublicPhoto> getPublicPhotos() {
         return publicPhotos;
     }
@@ -65,8 +52,6 @@ public class HumansPublicPhoto implements HumanIdFace, Serializable {
     public void setPublicPhotos(List<PublicPhoto> publicPhotos) {
         this.publicPhotos = publicPhotos;
     }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {

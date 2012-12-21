@@ -1,5 +1,6 @@
 package ai.ilikeplaces.entities;
 
+
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.WARNING;
 import ai.scribble._bidirectional;
@@ -15,33 +16,26 @@ import java.util.Set;
  * Time: 7:47 PM
  */
 @WARNING("THIS ENTITY IS NOT GUARANTEED TO 'BE' EVEN THOUGH A HUMAN IS SIGNED UP. SO CREATE IT IF NOT PRESENT!")
-@Table(name = "HumansTribe", schema = "KunderaKeyspace@ilpMainSchema")
 @Entity
-@EntityListeners({EntityLifeCycleListener.class})
-public class HumansTribe implements HumansFriend, HumanIdFace, HumanEqualsFace, Serializable {
-// ------------------------------ FIELDS ------------------------------
+public class HumansTribe implements HumansFriend, HumanIdFace, HumanEqualsFace , Serializable {
+    public String humanId;
+
+    public Set<Tribe> tribes;
 
     @Id
-    @Column(name = "humanId")
-    public String humanId;
-    public static final String humanIdCOL = "humanId";
-
-
-    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
-    @ManyToMany(cascade = CascadeType.REFRESH, mappedBy = Tribe.tribeMembersCOL, fetch = FetchType.LAZY)
-    public Set<Tribe> tribes;
-    public static final String tribesCOL = "tribes";
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public String getHumanId() {
         return humanId;
     }
+
+
 
     public void setHumanId(final String humanId) {
         this.humanId = humanId;
     }
 
+
+    @_bidirectional(ownerside = _bidirectional.OWNING.NOT)
+    @ManyToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     public Set<Tribe> getTribes() {
         return tribes;
     }
@@ -49,8 +43,6 @@ public class HumansTribe implements HumansFriend, HumanIdFace, HumanEqualsFace, 
     public void setTribes(final Set<Tribe> tribes) {
         this.tribes = tribes;
     }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public boolean equals(final Object o) {
