@@ -70,7 +70,7 @@ public class Wall implements Clearance, Refreshable<Wall>, Serializable {
 //    }
 
     @Transient
-    public Wall setWallRContent(String wallContent) {
+    public Wall setWallContentR(String wallContent) {
         this.wallContent = wallContent;
         return this;
     }
