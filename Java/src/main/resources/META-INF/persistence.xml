@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="https://raw.github.com/impetus-opensource/Kundera/Kundera-2.0.4/kundera-core/src/test/resources/META-INF/persistence_2_0.xsd"
-             xmlns="http://java.sun.com/xml/ns/persistence">
+<persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
     <persistence-unit name="ilpMainSchema" transaction-type="RESOURCE_LOCAL">
-        <provider>com.impetus.kundera.KunderaPersistence</provider>
+        <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
         <class>ai.ilikeplaces.entities.HumansAuthorization</class>
         <class>ai.ilikeplaces.entities.Wall</class>
         <class>ai.ilikeplaces.entities.PrivateEvent</class>
