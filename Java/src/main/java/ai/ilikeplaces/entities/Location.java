@@ -2,8 +2,6 @@ package ai.ilikeplaces.entities;
 
 import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -31,7 +29,6 @@ import java.util.List;
                 query = "SELECT loc FROM Location loc WHERE UPPER(loc.locationName) LIKE :locationName")})
 public class Location implements Serializable, Clearance, Comparable<Location>,Refreshable<Location> {
 
-    final static Logger logger = LoggerFactory.getLogger(Location.class.getName());
     final static public String LocationEntity = "Location";
     final static public String FindAllLocationsByName = "FindAllLocationsByName";
     final static public String FindAllLocationsBySuperLocation = "FindAllLocationsBySuperLocation";

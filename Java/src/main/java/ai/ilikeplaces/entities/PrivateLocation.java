@@ -6,8 +6,6 @@ import ai.scribble.License;
 import ai.scribble.WARNING;
 import ai.scribble._bidirectional;
 import ai.scribble._ok;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -29,8 +27,6 @@ import java.util.List;
                 query = "SELECT loc FROM PrivateLocation loc WHERE (loc.privateLocationLatitude BETWEEN " + ":" + PrivateLocation.PrivateLocationLatitudeSouth + " AND " + ":" + PrivateLocation.PrivateLocationLatitudeNorth + ") AND (loc.privateLocationLongitude BETWEEN " + ":" + PrivateLocation.PrivateLocationLongitudeWest + " AND " + ":" + PrivateLocation.PrivateLocationLongitudeEast + ")")})
 //                           select *   FROM ilp.privatelocation WHERE (    privatelocationlatitude BETWEEN                                 40                         AND                                   50                      ) AND (    privatelocationlongitude between                                 -75                        and                               -7                          )
 public class PrivateLocation implements Serializable, RefreshData<PrivateLocation>, Refreshable<PrivateLocation> {
-
-    final static Logger logger = LoggerFactory.getLogger(PrivateLocation.class.getName());
 
     final static public String FindAllPrivateLocationsByName = "FindAllPrivateLocationsByName";
     final static public String FindAllPrivateLocationNamesByLikeName = "FindAllPrivateLocationNamesByLikeName";
