@@ -5,7 +5,7 @@
 
     <groupId>hobbits</groupId>
     <artifactId>hobbits</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <name>ilikeplaces JEE6 Webapp</name>
     <url>http://maven.apache.org</url>
 

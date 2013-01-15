@@ -1,9 +1,6 @@
 package ai.ilikeplaces.entities;
 
-import ai.ilikeplaces.entities.etc.Refresh;
-import ai.ilikeplaces.entities.etc.RefreshException;
-import ai.ilikeplaces.entities.etc.RefreshSpec;
-import ai.ilikeplaces.entities.etc.Refreshable;
+import ai.ilikeplaces.entities.etc.*;
 import ai.scribble.License;
 import ai.scribble.WARNING;
 import ai.scribble._bidirectional;
@@ -41,6 +38,7 @@ public class PrivatePhoto implements Serializable, Comparable<PrivatePhoto>, Ref
     public List<Album> albums;
     final static public String albumsCol = "albums";
 
+    @RefreshId("privatePhotoWall")
     public Wall privatePhotoWall;
 
     private static final Refresh<PrivatePhoto> REFRESH = new Refresh<PrivatePhoto>();
