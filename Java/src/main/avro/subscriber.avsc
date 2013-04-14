@@ -1,0 +1,8 @@
+{
+    "type": "record",
+    "name": "Subscriber",
+    "namespace": "ai.ilikeplaces.entities",
+    "fields" : [ 
+                    {"name": "emailId", "type": "string"}
+               ]
+}

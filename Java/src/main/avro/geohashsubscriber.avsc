@@ -1,0 +1,10 @@
+{
+    "type": "record",
+    "name": "GeohashSubscriber",
+    "namespace": "ai.ilikeplaces.entities",
+    "fields" : [ 
+                    {"name": "emailId", "type": "string"},
+                    {"name": "latitude", "type": "double"},
+                    {"name": "longitude", "type": "double"}
+               ]
+}
